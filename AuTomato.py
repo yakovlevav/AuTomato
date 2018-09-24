@@ -1,11 +1,16 @@
 import AutoChrono
 import initialize
 
-if __name__ == '__main__':
+def initclean():
+	init = initialize.initialize()
+	# init.create_folders()
+	# init.clean_all_folders()
+	# init.clean_data_folders()
+	# init.clean_specific('Oxygen')
 
-	init = initialize.WoldCreation()
-	init.create_folders()
-	init.clean_folders()
+if __name__ == '__main__':
+	
+	initclean()
 
 	# AutoChrono.CSVConverter()
 	# dc = AutoChrono.DataCollector()
