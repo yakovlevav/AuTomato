@@ -1,5 +1,7 @@
 import	os
 
+FunctionsFolder = 'Functions'
+
 DataFolderName = 'Data'
 DataFolders = ['PalmSense', 'Humidity', 'Oxygen']
 
@@ -22,5 +24,7 @@ if __name__ == '__main__':
 		make_folders(DataFolderName+'/'+i)
 	#Create result folder
 	make_folders(ResultFolder)
+	make_folders(FunctionsFolder)
+
 
 
