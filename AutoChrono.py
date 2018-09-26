@@ -92,11 +92,11 @@ class DataCollector():
 	#
 	Data = {}
 
-	def __init__(self):
-		a = glob(self.pathCurrent+'/*.csv')[0]
+	# def __init__(self):
+		# a = glob(self.pathCurrent+'/*.csv')[0]
 		#Strange and need to be fixed
-		b = re.sub(r'(-\d+.csv)', '', a)
-		self.FinalDataName = re.sub(self.pathCurrent, '', b)
+		# (?# b = re.sub(r'(-\d+.csv)', '', a))
+		# self.FinalDataName = re.sub(self.pathCurrent, '', b)
 		# CSVConverter()
 
 	def getfilelist(self, path, filetype):
@@ -222,50 +222,8 @@ class DataCollector():
 			Current = data[1][index]
 			FinalDict[time] = [Current]
 		FinalDict['Time'] = ['Current@%ss'%GoalTime]
+		print(FinalDict)
 		return FinalDict
-
-	def GetOxygenFromBoard(self):
-        # get all the referencesensor datafiles
-		datafile = self.getfilelist(self.pathCurrentBoard, filetype = '*.txt')
-		Data, temp = {}, []
-		# Create temp for imporing data respective to columns
-		for i in self.oxygenboardcols: temp.append([])
-		# Get date from all files in the folder and create one list
-		for i in datafile:
-			data = genfromtxt(i, #Careful, do not unpack of different dtypes!
-			        delimiter=',',
-			        unpack=True,
-			        dtype=str,
-			        usecols = (self.oxygenboardcols),
-			        # skip_header = skip_header
-			        ).tolist()
-			for i, d in enumerate(temp):
-				temp[i].extend(data[i])
-		Data['Time'] = self.oxygenboardcolnames 
-		for i, d in enumerate(temp[0]):
-				try: #Fix for the empty number in dictionary - Error in float()
-					Data[datetime.strptime(d, "%Y-%m-%d %H:%M:%S")] =\
-					[float(x[i]) for x in temp[1:]] #Append rest of the as list
-				except Exception as e:
-					continue
-					
-		# return Data
-		a = int(data[0][0])
-		print(a.astype(np.int64)//10**9)
-		# print(FinalDict)
-
-		# for filenames in datafile:
-
-
-        # # SensorData = pd.DataFrame()
-        # for i in range(len(filelistReference)):
-        #     dataRead = pd.read_csv(directory + filelistReference[i], sep=',', header = None, names=["date", "o2", "press1", "temp", "press2"])
-        #     SensorData = SensorData.append(dataRead, ignore_index = True)
-        # # change date from datetime to unix timestamp
-        # index = pd.DatetimeIndex(SensorData.date)
-        # index = index.astype(np.int64)//10**9
-        # SensorData.date = index
-        # return SensorData
 
 	def getcurrent(self, *arg):
 		if not arg:
@@ -278,6 +236,35 @@ class DataCollector():
 				self.Data = self.MatchData(self.Data, 
 				self.current(i))
 
+	def OxygenBoardData(self):
+		datafile = self.getfilelist(self.pathCurrentBoard, '*.txt')
+		print(datafile)
+
+		#Remove shit from file
+		with open(datafile[0], 'r', encoding="utf-8") as f: 
+			contents = f.read()
+			contents = contents.replace(",T: ", ",")
+			contents = contents.replace(" nA", "")
+			contents = contents.replace(" C|O:", ",")
+
+		newfilename = datafile[0].replace('.txt', 'mod.txt')
+		with open(newfilename, 'w',  encoding="utf-8") as f: f.write(contents)
+		####
+
+		FinalDict = {}
+		data = genfromtxt(newfilename, #Careful, not unpack of different dtypes!
+			        delimiter=',',
+			        unpack=True,
+			        skip_footer = 12,
+			        ).tolist()
+
+		#Create dictionaty for time and 
+		for number, time in enumerate(data[0]):
+			finaltime = datetime.utcfromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S')
+			FinalDict[finaltime] = [data[2][number]]
+
+		return(FinalDict)
+		
 	def writedata(self):
 		'''
 		Open file with the name Data.csv in resultfolder
