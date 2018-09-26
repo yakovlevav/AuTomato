@@ -68,7 +68,7 @@ class DataCollector():
 	pathCurrent = 'Data/Curves/Converted/'
 	pathOx = 'Data/Oxygen/'
 	pathRH = 'Data/Humidity/'
-	resultfolder = 'ResultPlots/'
+	resultfolder = 'Result/RawData/'
 	pathCurrentBoard = 'Data/OxygenBoard/'
 
 	#Naming and col numbers for oxygen level
@@ -222,7 +222,6 @@ class DataCollector():
 			Current = data[1][index]
 			FinalDict[time] = [Current]
 		FinalDict['Time'] = ['Current@%ss'%GoalTime]
-		print(FinalDict)
 		return FinalDict
 
 	def getcurrent(self, *arg):
@@ -260,10 +259,24 @@ class DataCollector():
 
 		#Create dictionaty for time and 
 		for number, time in enumerate(data[0]):
-			finaltime = datetime.utcfromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S')
+			finaltime = datetime.utcfromtimestamp(time)
 			FinalDict[finaltime] = [data[2][number]]
-
+		FinalDict['Time'] = ['Current(nA)']
+		print(FinalDict)
 		return(FinalDict)
+
+	def getoxygenboard(self):
+		'''
+		Get oxygen current lvl from borads
+		data in form of {Time: [Current]}
+		'''
+		self.Data = self.OxygenBoardData()
+		self.Data = self.MatchData(self.Data, 
+			self.get(
+					path = self.pathOx, 
+					cols = self.oxygencols, 
+					colnames = self.oxygencolnames
+					))
 		
 	def writedata(self):
 		'''
@@ -293,7 +306,7 @@ class Plotter():
 	"""docstring for Plotter"""
 	pathCurrent = 'Data/Curves/Converted/'
 	pathOx = 'Data/Oxygen/'
-	resultfolder = 'ResultPlots/'
+	resultfolder = 'Result/RawData/'
 	plotnames = ['Oxygen lvl', 'Current@2.0s', 'Time']
 	name  = ''
 	ShowTime = True
