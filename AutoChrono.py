@@ -11,60 +11,10 @@ from scipy.optimize import curve_fit #Curve fit
 logging.basicConfig(filename='converter.log', level=logging.INFO,
 	format='%(asctime)s : %(message)s')
 
-class CSVConverter():
-	'''
-	Developer: Aleksandr V. Yakovlev
-	Convert encoding from CSV files created by PalmSense
-	to new encoding and place them in new folder.
-	In addition, add zero to file name numbering.
-	'''
-	pathCV = 'Data/Curves/'
-	ResultFolder = pathCV +'Converted/'
-	decodefrom = 'utf-16'
-	encodeto = 'utf-8'
-
-	def __init__(self): 
-		if not glob(self.ResultFolder + '/*.csv'): self.convert()
-		else: print('Files already converted!')
-
-	def convert(self):
-		#If where is no folder - create it!
-		if not os.path.exists(self.ResultFolder): os.makedirs(self.ResultFolder)
-		#Create list of all CSV files
-		filestoconvert = glob(self.pathCV+'/*.csv')
-		# If no files to convert break program
-		if not filestoconvert:
-			logging.error('No CSV files to convert!')
-			sys.exit()
-		else:
-			logging.info('Number of files to convert - {}'.format(len(filestoconvert)))
-		#Calculate number of digits for zero aading
-		length = len(str(len(filestoconvert)))
-		#Convert files and place them in new folder
-		for i in filestoconvert:
-			#Open file with encoding
-			with open(i, 'r', encoding = self.decodefrom) as f: contents = f.read()
-			logging.info('Write File %s!' % i)
-			newfilename = self.addzero(
-				filename = re.sub(self.pathCV, self.ResultFolder, i), 
-				length = length
-				)
-			with open(newfilename, 'w', encoding = self.encodeto) as f: f.write(contents)
-			logging.info('Write File %s  - done!' % newfilename)	
-		logging.info('Files conversion to %s - done!' % self.encodeto)	
-
-	def addzero(self, filename, length):
-		#Add zero to the stupid naming in PalmSense
-		numberoffile = re.findall(r'(\d+)', filename)[-1] #Find only last digit in the text
-		zeros = '0'*(length-len(str(numberoffile)))
-		newfilename = re.sub(r'(-\d+.csv)', '-'+zeros+numberoffile+'.csv', filename)
-		return newfilename
-
 class DataCollector():
 	'''
 	Developer: Aleksandr V. Yakovlev
 	'''
-
 	pathCurrent = 'Data/Curves/Converted/'
 	pathOx = 'Data/Oxygen/'
 	pathRH = 'Data/Humidity/'
@@ -242,11 +192,12 @@ class DataCollector():
 		#Remove shit from file
 		with open(datafile[0], 'r', encoding="utf-8") as f: 
 			contents = f.read()
+			contents = contents.replace("Power was interrupted!\nTime and Date have been reset.\nCurrent state: Stopped\n\n", "")
 			contents = contents.replace(",T: ", ",")
 			contents = contents.replace(" nA", "")
 			contents = contents.replace(" C|O:", ",")
 
-		newfilename = datafile[0].replace('.txt', 'mod.txt')
+		newfilename = datafile[0].replace('.txt', '_b.txt')
 		with open(newfilename, 'w',  encoding="utf-8") as f: f.write(contents)
 		####
 
@@ -259,10 +210,11 @@ class DataCollector():
 
 		#Create dictionaty for time and 
 		for number, time in enumerate(data[0]):
-			finaltime = datetime.utcfromtimestamp(time)
+			finaltime = datetime.fromtimestamp(time)
+			print(finaltime)
 			FinalDict[finaltime] = [data[2][number]]
 		FinalDict['Time'] = ['Current(nA)']
-		print(FinalDict)
+		# print(FinalDict)
 		return(FinalDict)
 
 	def getoxygenboard(self):
@@ -270,6 +222,12 @@ class DataCollector():
 		Get oxygen current lvl from borads
 		data in form of {Time: [Current]}
 		'''
+		a = glob(self.pathCurrentBoard+'/*.txt')[0]
+		print(a)
+		#Strange and need to be fixed
+		b = re.sub(r'(-\d+.txt)', '', a)
+		self.FinalDataName = re.sub(self.pathCurrentBoard, '', b)
+
 		self.Data = self.OxygenBoardData()
 		self.Data = self.MatchData(self.Data, 
 			self.get(
@@ -307,6 +265,7 @@ class Plotter():
 	pathCurrent = 'Data/Curves/Converted/'
 	pathOx = 'Data/Oxygen/'
 	resultfolder = 'Result/RawData/'
+	resultfolderplot = 'Result/Response/'
 	plotnames = ['Oxygen lvl', 'Current@2.0s', 'Time']
 	name  = ''
 	ShowTime = True
@@ -314,7 +273,8 @@ class Plotter():
 	def __init__(self):
 		#Find name of DataFile in resultfolder
 		a = glob(self.resultfolder+'/*.csv')[0][:-4]
-		self.name = re.sub(self.resultfolder,'', a)
+		b = re.sub(r'(-\d+.txt)', '', a)
+		self.name = re.sub(self.resultfolder,'', b)
 
 		# return(name)
 
@@ -333,7 +293,7 @@ class Plotter():
 
 	def importfile(self, file):
 		'''
-		Import file created from the CollectData function
+		Import file created function
 		and collect data as [] in dictionary by name
 		Function return only data with names 'NamesToImport'
 		as list [[],[]...]
@@ -381,7 +341,7 @@ class Plotter():
 		fig1 = plt.figure()
 		ax1 = plt.subplot(111)
 		# # Figure size in inches
-		fig1.set_size_inches(3.54,3.54)
+		# fig1.set_size_inches(3.54,3.54)
 
 		#Adjusting
 		plt.tick_params(
@@ -397,9 +357,7 @@ class Plotter():
 					xytext=(1,1), textcoords='offset points',
 	                family='sans-serif', fontsize=7, alpha = 0.8, color=colors[i])
 
-		#Plot data
-		xn1, yn1, popt = fit(x, y)
-		b, = plt.plot(xn1,yn1,'r') #Line
+
 
 		#Adjust plot parameters
 		ax1.set_ylabel(u'Current, µA')
@@ -411,13 +369,17 @@ class Plotter():
 		plt.grid()
 
 		#Fit parameters on plot
-		plt.text(0.65, 0.95, 'y = {:.2E}x{:.2E}'.format(*popt),
-			horizontalalignment='center',
-			verticalalignment='center',
-			transform = ax1.transAxes,
-			fontsize = 8,
-			backgroundcolor = 'white')
+		#Plot data
+		# xn1, yn1, popt = fit(x, y)
+		# b, = plt.plot(xn1,yn1,'r') #Line
+		# plt.text(0.65, 0.95, 'y = {:.2E}x{:.2E}'.format(*popt),
+		# 	horizontalalignment='center',
+		# 	verticalalignment='center',
+		# 	transform = ax1.transAxes,
+		# 	fontsize = 8,
+		# 	backgroundcolor = 'white')
 
 		#Export
 		###############################
-		plt.savefig(self.resultfolder+self.name+'.png', dpi= 1000, bbox_inches='tight')
+		# plt.show()
+		plt.savefig(self.resultfolderplot+self.name+'.png', dpi= 1000, bbox_inches='tight')
