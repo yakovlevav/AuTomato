@@ -3,6 +3,8 @@ from glob import glob #List of files
 from datetime import datetime, timedelta
 from numpy import genfromtxt, linspace
 from tqdm import tqdm #For progress bar
+import tools
+import settings as st
 
 
 logging.basicConfig(filename='converter.log', level=logging.INFO,
@@ -176,23 +178,9 @@ class DataCollector():
 				self.current(i))
 
 	def OxygenBoardData(self):
-		datafile = self.getfilelist(self.pathCurrentBoard, '*.txt')
-		print(datafile)
-
-		#Remove shit from file
-		with open(datafile[0], 'r', encoding="utf-8") as f: 
-			contents = f.read()
-			contents = contents.replace("Power was interrupted!\nTime and Date have been reset.\nCurrent state: Stopped\n\n", "")
-			contents = contents.replace(",T: ", ",")
-			contents = contents.replace(" nA", "")
-			contents = contents.replace(" C|O:", ",")
-
-		newfilename = datafile[0].replace('.txt', '_b.txt')
-		with open(newfilename, 'w',  encoding="utf-8") as f: f.write(contents)
-		####
-
+		files = tools.getfilelist(st.PathBoardCleaned, st.BoardFileExtention)
 		FinalDict = {}
-		data = genfromtxt(newfilename, #Careful, not unpack of different dtypes!
+		data = genfromtxt(files[0], #Careful, not unpack of different dtypes!
 			        delimiter=',',
 			        unpack=True,
 			        skip_footer = 12,
@@ -201,10 +189,8 @@ class DataCollector():
 		#Create dictionaty for time and 
 		for number, time in enumerate(data[0]):
 			finaltime = datetime.fromtimestamp(time)
-			print(finaltime)
 			FinalDict[finaltime] = [data[2][number]]
-		FinalDict['Time'] = ['Current(nA)']
-		# print(FinalDict)
+		FinalDict['Time'] = [st.OxResponseName]
 		return(FinalDict)
 
 	def getoxygenboard(self):
@@ -212,11 +198,11 @@ class DataCollector():
 		Get oxygen current lvl from borads
 		data in form of {Time: [Current]}
 		'''
-		a = glob(self.pathCurrentBoard+'/*.txt')[0]
-		print(a)
+		# a = glob(self.pathCurrentBoard+'/*.txt')[0]
+		# print(a)
 		#Strange and need to be fixed
-		b = re.sub(r'(-\d+.txt)', '', a)
-		self.FinalDataName = re.sub(self.pathCurrentBoard, '', b)
+		# b = re.sub(r'(-\d+.txt)', '', a)
+		# self.FinalDataName = re.sub(self.pathCurrentBoard, '', b)
 
 		self.Data = self.OxygenBoardData()
 		self.Data = self.MatchData(self.Data, 
