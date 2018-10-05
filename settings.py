@@ -5,6 +5,8 @@ pathcv = 'Data/Curves/'
 convertfolder = pathcv + 'converted/'
 
 pathCurrentBoard = 'Data/OxygenBoard/'
+
+#Filenames for boards
 BoardFileExtention = '*.txt'
 
 ErrorCodes = [
@@ -13,6 +15,10 @@ ErrorCodes = [
 	("\nPower was interrupted!\nTime and Date have been reset.\nCurrent state: Stopped\n\n","")
 	]
 
+#Name of response for boards
+OxResponseName = 'Current(nA)'
+
+#Files path for cleaned data from boards
 PathBoardCleaned = pathCurrentBoard + 'converted/'
 
 #Naming and col numbers for oxygen level
