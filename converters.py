@@ -60,5 +60,4 @@ def ConvertOxygenBoard(path = st.pathCurrentBoard, ext = st.BoardFileExtention,
 		# print(newname)
 		with open(finalpath, 'w+',  encoding="utf-8") as f: f.write(contents)
 		print('File %s was cleaned.' % filename)
-
 	print('Files cleaned from errors and placed in folder %s - done!' % cpath)
