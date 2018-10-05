@@ -16,23 +16,39 @@ import converters as conv
 
 # def PalmSenseProcedute():
 	
-	# Convert data from PalmSense
-	# ConvertPalmSenseCSV()
+# 	Convert data from PalmSense
+# 	ConvertPalmSenseCSV()
 
 def OxygenBoardProcedure():
 	conv.ConvertOxygenBoard()
 	dc = AutoChrono.DataCollector()
 	dc.getoxygenboard()
 	dc.writedata()
+
+	#Plotiing
 	pt = Plotter.Plotter()
 	pt.plotnames = ['Oxygen lvl', 'Current(nA)', 'Time']
 	pt.ShowTime = False
 	pt.plotdata()
 
-if __name__ == '__main__':
-	OxygenBoardProcedure()
+def OxygenPalmSense():
+	conv.ConvertPalmSenseCSV()
+	dc = AutoChrono.DataCollector()
+	dc.getcurrent(0.5)
+	dc.getoxygen()
+	dc.writedata()
 
-	
+	#Plotting
+	pt = Plotter.Plotter()
+	pt.plotnames = ['Oxygen lvl', 'Current@0.5s', 'Time']
+	# pt.ShowTime = False
+	pt.plotdata()
+
+
+if __name__ == '__main__':
+	# OxygenBoardProcedure()
+	OxygenPalmSense()
+
 	# PalmSenseProcedute()
 	# dc = AutoChrono.DataCollector()
 
