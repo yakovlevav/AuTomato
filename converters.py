@@ -1,9 +1,13 @@
 import os, logging, sys, re
 from glob import glob #List of files
+import settings as st
 
-def ConvertPalmSenseCSV(pathcv = 'Data/Curves/', decodefrom = 'utf-16', encodeto = 'utf-8'):
+def ConvertPalmSenseCSV(pathcv = st.pathcv, 
+	decodefrom = st.decodefrom, encodeto = st.encodeto, 
+	convertfolder = st.convertfolder):
+
 	#If where is no folder - create it!
-	ResultFolder = pathcv+'converted/'
+	convertfolder = pathcv+'converted/'
 
 	#Check if folder for converted files exists	#Create list of all CSV files
 	filestoconvert = glob(pathcv+'/*.csv')
@@ -12,7 +16,7 @@ def ConvertPalmSenseCSV(pathcv = 'Data/Curves/', decodefrom = 'utf-16', encodeto
 		print('No CSV files from PalmSense to convert!')
 		sys.exit()
 	else:
-		if not os.path.exists(ResultFolder): os.makedirs(ResultFolder)
+		if not os.path.exists(convertfolder): os.makedirs(convertfolder)
 		print('Number of files to convert - {}'.format(len(filestoconvert)))
 	#Calculate number of digits for zero aading
 	length = len(str(len(filestoconvert)))
@@ -22,7 +26,7 @@ def ConvertPalmSenseCSV(pathcv = 'Data/Curves/', decodefrom = 'utf-16', encodeto
 		with open(i, 'r', encoding = decodefrom) as f: contents = f.read()
 		logging.info('Write File %s!' % i)
 		newfilename = addzero(
-			filename = re.sub(pathcv, ResultFolder, i), 
+			filename = re.sub(pathcv, convertfolder, i), 
 			length = length
 			)
 		with open(newfilename, 'w', encoding = encodeto) as f: f.write(contents)
@@ -31,8 +35,30 @@ def ConvertPalmSenseCSV(pathcv = 'Data/Curves/', decodefrom = 'utf-16', encodeto
 
 def addzero(filename, length):
 	#Add zero to the stupid naming in PalmSense
-	print(filename)
 	numberoffile = re.findall(r'(\d+)', filename)[-1] #Find only last digit in the text
 	zeros = '0'*(length-len(str(numberoffile)))
 	newfilename = re.sub(r'(-\d+.csv)', '-'+zeros+numberoffile+'.csv', filename)
 	return newfilename
+
+def ConvertOxygenBoard(path = st.pathCurrentBoard, ext = st.BoardFileExtention,
+	cpath = st.PathBoardCleaned, a = st.ErrorCodes):
+	#Get all files from folder
+	filestoconvert = glob(path+ext)
+	if not os.path.exists(cpath): 
+		os.makedirs(cpath)
+	else: 
+		print('Folder %s already exists'%cpath)
+	for x in filestoconvert:
+		#Remove shit from file
+		with open(x, 'r', encoding="utf-8") as f: 
+			contents = f.read()
+			#Replace truples of errors
+			for i in a: contents = contents.replace(*i)
+		#Place files in subfolder with cleaned data
+		filename = os.path.basename(x)
+		finalpath = os.path.join(cpath,filename)
+		# print(newname)
+		with open(finalpath, 'w+',  encoding="utf-8") as f: f.write(contents)
+		print('File %s was cleaned.' % filename)
+
+	print('Files cleaned from errors and placed in folder %s - done!' % cpath)
