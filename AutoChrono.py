@@ -230,8 +230,8 @@ class DataCollector():
 			file.write(output)
 		print('Final dictionary file writed!')
 
-	def OxygenCurrentMode(self):
-		self.Data = self.MatchData(self.getoxygen(),self.getcurrent())
+	def OxygenCurrentMode(self, time):
+		self.Data = self.MatchData(self.getoxygen(),self.getcurrent(time))
 
 	def AddHumidity(self):
 		self.Data = self.MatchData(self.Data,self.gethumidity())
