@@ -20,7 +20,7 @@ def findkeys(dictionary, name = 'Current'):
 	finkeys.sort()
 	return(finkeys)
 
-def plotOxygen(ShowTime = True):
+def PlotOxygen(pathname, ShowTime = True):
 	def func(x,a,b):
 	    return a*x+b
 
@@ -32,13 +32,11 @@ def plotOxygen(ShowTime = True):
 	    ynew = func(xnew, *popt)
 	    return (xnew, ynew, popt)
 
-	# tools.getfilelist(path, filetype, comment = 'No comment')
-
-	data = dc.ImportRaw(st.resultfolder, '18082752', '.csv')
+	data = dc.ImportRaw(pathname)
 	for x in data.keys(): 
 		if 'Current' in x: CurrentName = x
 
-	x,y, t = data['Oxygen_lvl'],data[CurrentName], data['Time']
+	x,y, t = data['Oxygen_lvl'], data[CurrentName], data['Time']
 
 	#Curve function
 	fig1 = plt.figure()
@@ -69,18 +67,30 @@ def plotOxygen(ShowTime = True):
 	ax1.minorticks_on()
 	plt.grid()
 
-	#Fit parameters on plot
-	#Plot data
-	# xn1, yn1, popt = fit(x, y)
-	# b, = plt.plot(xn1,yn1,'r') #Line
-	# plt.text(0.65, 0.95, 'y = {:.2E}x{:.2E}'.format(*popt),
-	# 	horizontalalignment='center',
-	# 	verticalalignment='center',
-	# 	transform = ax1.transAxes,
-	# 	fontsize = 8,
-	# 	backgroundcolor = 'white')
+	xn1, yn1, popt = fit(x, y)
+	b, = plt.plot(xn1,yn1,'r') #Line
+	plt.text(0.65, 0.95, 'y = {:.2E}x{:.2E}'.format(*popt),
+		horizontalalignment='center',
+		verticalalignment='center',
+		transform = ax1.transAxes,
+		fontsize = 8,
+		backgroundcolor = 'white')
 
 	#Export
 	###############################
-	# plt.show()
-	plt.savefig(st.resultfolder+st.FinalDataName+'.png', dpi= 1000, bbox_inches='tight')
+	name = tools.FindFilename(pathname)
+	plt.savefig(st.ResponseFolder+name+'.png', dpi= 1000, bbox_inches='tight')
+	print('Plot for sensors %s - done'%name)
+
+def plotter():
+	names = tools.getfilelist(st.resultfolder, 
+		st.FinRAWExtention, 
+		comment = 'Get files for oxygen plotting...')
+	for x in names:
+		PlotOxygen(x)
+	
+
+
+
+
+
