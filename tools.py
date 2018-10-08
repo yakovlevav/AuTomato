@@ -1,4 +1,6 @@
 from glob import glob
+import sys
+import settings as st
 
 def getfilelist(path, filetype, comment = 'No comment'):
 	'''
