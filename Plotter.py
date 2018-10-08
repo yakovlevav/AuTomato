@@ -17,6 +17,9 @@ class Plotter():
 	ShowTime = True
 
 	def __init__(self):
+		pathCurrent = st.pathCurrent()
+
+	def __init__(self):
 		#Find name of DataFile in resultfolder
 		a = glob(self.resultfolder+'/*.csv')[0][:-4]
 		b = re.sub(r'(-\d+.txt)', '', a)
@@ -66,7 +69,6 @@ class Plotter():
 
 	def exportname(self):
 		name = glob(self.resultfolder+'/*.csv')
-
 		return(name[0][:-4])
 
 	def plotdata(self):
@@ -80,6 +82,8 @@ class Plotter():
 		    popt, pcov = curve_fit(func, xnew, f(xnew))
 		    ynew = func(xnew, *popt)
 		    return (xnew, ynew, popt)
+
+		print(self.importfile(self.resultfolder))
 
 		x, y, t = self.importfile(self.resultfolder)
 
