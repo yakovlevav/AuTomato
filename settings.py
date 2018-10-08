@@ -1,3 +1,4 @@
+Data = {}
 #Settings for application
 
 pathcv = 'Data/Curves/'
@@ -5,9 +6,12 @@ pathcv = 'Data/Curves/'
 convertfolder = pathcv + 'converted/'
 
 pathCurrentBoard = 'Data/OxygenBoard/'
+palmsenseExtention = '.csv'
 
 #Filenames for boards
 BoardFileExtention = '*.txt'
+
+FinRAWExtention = '.csv'
 
 ErrorCodes = [
 	(" nA", ""), (" C|O:",","), 
@@ -15,8 +19,14 @@ ErrorCodes = [
 	("\nPower was interrupted!\nTime and Date have been reset.\nCurrent state: Stopped\n\n","")
 	]
 
+plotnames = ['Oxygen lvl', 'Time']
+
 #Name of response for boards
 OxResponseName = 'Current(nA)'
+
+# Path for RAW data 
+resultfolder = 'Result/RawData/'
+FinalDataName = 'RawData'
 
 #Files path for cleaned data from boards
 PathBoardCleaned = pathCurrentBoard + 'converted/'
@@ -33,6 +43,9 @@ oxygenboardcolnames = ['CurrentOnBoard']
 oxygenboardcols = (0,1)
 # 
 timeerror = 5
+
+# Path for oxygen reference data
+pathOx = 'Data/Oxygen/'
 
 #Settings for PalmSense converte
 decodefrom = 'utf-16'
