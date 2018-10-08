@@ -9,7 +9,7 @@ pathCurrentBoard = 'Data/OxygenBoard/'
 palmsenseExtention = '.csv'
 
 #Filenames for boards
-BoardFileExtention = '*.txt'
+BoardFileExtention = '.txt'
 
 FinRAWExtention = '.csv'
 
@@ -26,6 +26,7 @@ OxResponseName = 'Current(nA)'
 
 # Path for RAW data 
 resultfolder = 'Result/RawData/'
+ResponseFolder ='Result/Response/'
 FinalDataName = 'RawData'
 
 #Files path for cleaned data from boards
