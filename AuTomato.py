@@ -2,6 +2,10 @@ import AutoChrono
 import initialize
 import Plotter
 import converters as conv
+import datacollector as dc2
+import settings as st
+import tools as tools
+import PlotData as pt
 
 # import logging
 
@@ -19,35 +23,38 @@ import converters as conv
 # 	Convert data from PalmSense
 # 	ConvertPalmSenseCSV()
 
-def OxygenBoardProcedure():
-	conv.ConvertOxygenBoard()
-	dc = AutoChrono.DataCollector()
-	dc.getoxygenboard()
-	dc.writedata()
+# def OxygenBoardProcedure():
+# 	conv.ConvertOxygenBoard()
+# 	dc = AutoChrono.DataCollector()
+# 	dc.getoxygenboard()
+# 	dc.writedata()
 
-	#Plotiing
-	pt = Plotter.Plotter()
-	pt.plotnames = ['Oxygen lvl', 'Current(nA)', 'Time']
-	pt.ShowTime = False
-	pt.plotdata()
+# 	#Plotiing
+# 	pt = Plotter.Plotter()
+# 	pt.plotnames = ['Oxygen lvl', 'Current(nA)', 'Time']
+# 	pt.ShowTime = False
+# 	pt.plotdata()
 
-def OxygenPalmSense():
+def NewPalmSense():
 	conv.ConvertPalmSenseCSV()
-	dc = AutoChrono.DataCollector()
-	dc.getcurrent(0.5)
-	dc.getoxygen()
-	dc.writedata()
+	dc2.current(0.5)
+	dc2.AddRefOxygen()
+	dc2.writedata()
+	pt.plotOxygen()
 
-	#Plotting
-	pt = Plotter.Plotter()
-	pt.plotnames = ['Oxygen lvl', 'Current@0.5s', 'Time']
-	# pt.ShowTime = False
-	pt.plotdata()
-
+def NewOxboard():
+	conv.ConvertOxygenBoard()
+	dc2.getoxygenboard()
+	pt.plotter()
 
 if __name__ == '__main__':
 	# OxygenBoardProcedure()
-	OxygenPalmSense()
+	# OxygenPalmSense()
+	# experiment()
+
+	# NewPalmSense()
+	NewOxboard()
+
 
 	# PalmSenseProcedute()
 	# dc = AutoChrono.DataCollector()
