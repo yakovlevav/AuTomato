@@ -47,14 +47,22 @@ def NewOxboard():
 	dc2.getoxygenboard()
 	pt.plotter()
 
+def function():
+	# conv.multiconverter()
+	# dc2.current(0.5, pathCurrent = st.convertfolder)
+	dc2.get_ox_ps()
+	pt.plotter()
+
+
 if __name__ == '__main__':
 	# OxygenBoardProcedure()
 	# OxygenPalmSense()
 	# experiment()
 
 	# NewPalmSense()
-	NewOxboard()
+	# NewOxboard()
 
+	function()
 
 	# PalmSenseProcedute()
 	# dc = AutoChrono.DataCollector()
