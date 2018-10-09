@@ -40,6 +40,9 @@ def addzero(filename, length):
 	newfilename = re.sub(r'(-\d+.csv)', '-'+zeros+numberoffile+'.csv', filename)
 	return newfilename
 
+# def multiconverter():
+
+
 def ConvertOxygenBoard(path = st.pathCurrentBoard, ext = st.BoardFileExtention,
 	cpath = st.PathBoardCleaned, a = st.ErrorCodes):
 	#Get all files from folder
