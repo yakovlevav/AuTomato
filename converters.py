@@ -46,7 +46,7 @@ def addzero(filename, length):
 def ConvertOxygenBoard(path = st.pathCurrentBoard, ext = st.BoardFileExtention,
 	cpath = st.PathBoardCleaned, a = st.ErrorCodes):
 	#Get all files from folder
-	filestoconvert = glob(path+ext)
+	filestoconvert = glob(path+'*'+ext)
 	if not os.path.exists(cpath): 
 		os.makedirs(cpath)
 	else: 

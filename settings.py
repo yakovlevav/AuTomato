@@ -16,7 +16,8 @@ FinRAWExtention = '.csv'
 ErrorCodes = [
 	(" nA", ""), (" C|O:",","), 
 	(",T: ",","), 
-	("\nPower was interrupted!\nTime and Date have been reset.\nCurrent state: Stopped\n\n","")
+	("\nPower was interrupted!\nTime and Date have been reset.\nCurrent state: Stopped\n\n",""),
+	("\nLogger Memory Full!\nCurrent state: Stopped\nPlease Reset.\n\n","")
 	]
 
 plotnames = ['Oxygen lvl', 'Time']
@@ -43,7 +44,7 @@ humiditycolnames = ['Humidity']
 oxygenboardcolnames = ['CurrentOnBoard']
 oxygenboardcols = (0,1)
 # 
-timeerror = 5
+timeerror = 2
 
 # Path for oxygen reference data
 pathOx = 'Data/Oxygen/'

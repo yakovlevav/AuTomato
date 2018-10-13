@@ -21,8 +21,9 @@ def findkeys(dictionary, name = 'Current'):
 	return(finkeys)
 
 def PlotOxygen(pathname, ShowTime = True):
-	def func(x,a,b):
-	    return a*x+b
+	def func(x,a,b,c):
+	    return a*x**2+b*x+c
+		# return d+(a-d)/(1+(x/c)**b)
 
 	#Curve fitting
 	def fit(x, y): #Gauss Fit Function
@@ -36,7 +37,7 @@ def PlotOxygen(pathname, ShowTime = True):
 	for x in data.keys(): 
 		if 'Current' in x: CurrentName = x
 
-	x,y, t = data['Oxygen_lvl'], data[CurrentName], data['Time']
+	y, x, t = data['Oxygen_lvl'], data[CurrentName], data['Time']
 
 	#Curve function
 	fig1 = plt.figure()
@@ -58,36 +59,33 @@ def PlotOxygen(pathname, ShowTime = True):
 				xytext=(1,1), textcoords='offset points',
                 family='sans-serif', fontsize=7, alpha = 0.8, color=colors[i])
 
+
+	xn1, yn1, popt = fit(x, y)
+	b, = plt.plot(xn1,yn1,'r') #Line
+	name = tools.FindFilename(pathname)
 	#Adjust plot parameters
-	ax1.set_ylabel(u'Current, µA')
-	ax1.set_xlabel(r'Oxygen, %')
-	ax1.set_xlim(0,100)
-	plt.title(st.FinalDataName, y=1)
+	ax1.set_xlabel('Current \n(\muA for PS/nA for boards)')
+	ax1.set_ylabel(r'Oxygen, %')
+	ext = 'y = {:.2E}xˆ2{:+.2E}x{:+.2E}'.format(*popt)
+	test = func(3500,*popt)
+	plt.title(name+'\n'+ext, y=1)
 	ax1.ticklabel_format(axis='y',style='sci',scilimits=(0,4))
 	ax1.minorticks_on()
 	plt.grid()
 
-	xn1, yn1, popt = fit(x, y)
-	b, = plt.plot(xn1,yn1,'r') #Line
-	plt.text(0.65, 0.95, 'y = {:.2E}x{:.2E}'.format(*popt),
-		horizontalalignment='center',
-		verticalalignment='center',
-		transform = ax1.transAxes,
-		fontsize = 8,
-		backgroundcolor = 'white')
-
 	#Export
 	###############################
-	name = tools.FindFilename(pathname)
-	plt.savefig(st.ResponseFolder+name+'.png', dpi= 1000, bbox_inches='tight')
+	# plt.show()
+	plt.savefig(st.ResponseFolder+name+'.png', dpi= 300, 
+		bbox_inches='tight')
 	print('Plot for sensors %s - done'%name)
 
-def plotter():
+def plotter(ShowTime = False):
 	names = tools.getfilelist(st.resultfolder, 
 		st.FinRAWExtention, 
 		comment = 'Get files for oxygen plotting...')
 	for x in names:
-		PlotOxygen(x)
+		PlotOxygen(x, ShowTime)
 	
 
 
