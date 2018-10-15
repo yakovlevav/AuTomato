@@ -45,6 +45,8 @@ oxygenboardcolnames = ['CurrentOnBoard']
 oxygenboardcols = (0,1)
 # 
 timeerror = 2
+currentsetpoint = 2
+averangetime = 0.5
 
 # Path for oxygen reference data
 pathOx = 'Data/Oxygen/'

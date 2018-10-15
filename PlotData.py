@@ -3,7 +3,7 @@ from scipy import interpolate #Interpolation and fit
 from scipy.optimize import curve_fit #Curve fit
 import settings as st
 import datacollector as dc
-from numpy import genfromtxt, linspace
+import numpy as np
 from datetime import datetime, timedelta
 import tools
 
@@ -21,17 +21,20 @@ def findkeys(dictionary, name = 'Current'):
 	return(finkeys)
 
 def PlotOxygen(pathname, ShowTime = True):
-	def func(x,a,b,c):
+	# def func(t, c0, c1, c2, c3):
+	# 	return c0 + c1*t - c2*np.exp(-c3*t)
+	def func(x, a, b, c):
 	    return a*x**2+b*x+c
 		# return d+(a-d)/(1+(x/c)**b)
 
 	#Curve fitting
-	def fit(x, y): #Gauss Fit Function
-	    xnew = linspace(min(x),max(x),1000)
-	    f = interpolate.interp1d(x, y)
-	    popt, pcov = curve_fit(func, xnew, f(xnew))
-	    ynew = func(xnew, *popt)
-	    return (xnew, ynew, popt)
+	def fit(x, y):
+		xnew = np.linspace(min(x),max(x),1000)
+		f = interpolate.interp1d(x, y)
+		popt, pcov = curve_fit(func, xnew, f(xnew))
+		ynew = func(xnew, *popt)
+		# r2 = 1. - sum((func(x, *popt) - y) ** 2) / sum((y - np.mean(y)) ** 2)
+		return (xnew, ynew, popt)
 
 	data = dc.ImportRaw(pathname)
 	for x in data.keys(): 
@@ -49,7 +52,7 @@ def PlotOxygen(pathname, ShowTime = True):
 		axis='both', which='both', bottom='on', 
 		top='off', right = 'off', labelright = 'off')
 	#Plot data with colors on the time coloring
-	colors=plt.cm.rainbow(linspace(0,1,len(y)))
+	colors=plt.cm.rainbow(np.linspace(0,1,len(y)))
 
 	for i, xox in enumerate(x):
 		ax1.plot(xox,y[i], '.', color = colors[i], markersize = 2)
@@ -72,7 +75,7 @@ def PlotOxygen(pathname, ShowTime = True):
 	ax1.minorticks_on()
 	plt.grid()
 
-	#Export
+	#np.export
 	###############################
 	plt.savefig(st.ResponseFolder+name+'.png', dpi= 300, 
 		bbox_inches='tight')
@@ -84,9 +87,3 @@ def plotter(ShowTime = False):
 		comment = 'Get files for oxygen plotting...')
 	for x in names:
 		PlotOxygen(x, ShowTime)
-	
-
-
-
-
-

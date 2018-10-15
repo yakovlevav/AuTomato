@@ -10,8 +10,10 @@ def Oxboard():
 
 def PalmSense():
 	dc.get_ox_ps()
-	pt.plotter(ShowTime = False)
+	pt.plotter(ShowTime = True)
 
 if __name__ == '__main__':
+	# Oxygen boards measurment
 	Oxboard()
-	# PalmSense()
+	# Palm Sense collecting and plotting
+	PalmSense()

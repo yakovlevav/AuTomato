@@ -155,7 +155,7 @@ def get_ox_ps():
 	folders = glob(st.pathcv+'*/')
 	for x in folders:
 		conv.ConvertPalmSenseCSV(pathcv = x)
-		data = current(1, pathCurrent = x+'converted/')
+		data = current(st.currentsetpoint, averangetime = st.averangetime,  pathCurrent = x+'converted/')
 		st.Data = MatchData(data, 
 			get(
 				path = st.pathOx,
