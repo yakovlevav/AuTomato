@@ -6,7 +6,7 @@ import os, tools
 from glob import glob
 import converters as conv
 import numpy as np
-
+import pandas as pd
 
 def FindName(path, filetype):
 	file = os.listdir(path)[0]
@@ -208,28 +208,5 @@ def getoxygenboard():
 		writedata(st.resultfolder, name, st.FinRAWExtention)
 
 def ImportRaw(pathname):
-	'''
-	Import file created function
-	and collect data as [] in dictionary by name
-	Function return only data with names 'NamesToImport'
-	as list [[],[]...]
-	'''
-	dictionary = {}
-	data = genfromtxt(pathname, #Careful, do not unpack of different dtypes!
-	    delimiter=',',
-	    dtype = None,
-	    deletechars= '',
-	    names = True,
-	    invalid_raise = False,
-	    converters={0: lambda x: datetime.strptime(x.decode("utf-8"), "%Y-%m-%d %H:%M:%S")},
-	    )
-
-	names = data.dtype.names
-	#Create dictionary keys
-	for x in names:
-		dictionary[x] = []
-	#Add data to dictionary keys
-	for lines in data:
-		for numbers, cells in enumerate(lines.tolist()):
-			dictionary[names[numbers]].append(cells)
-	return(dictionary)
+	a = pd.read_csv(pathname)
+	return a.to_dict()
