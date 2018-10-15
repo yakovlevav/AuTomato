@@ -16,6 +16,7 @@ def PalmSense():
 if __name__ == '__main__':
 	#Create folder structure
 	init = init.initialize()
+	init.create_folders()
 	# Oxygen boards measurment
 	# Oxboard()
 	# Palm Sense collecting and plotting
