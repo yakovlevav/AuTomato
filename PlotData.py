@@ -68,7 +68,7 @@ def PlotOxygen(pathname, ShowTime = True):
 	#Adjust plot parameters
 	ax1.set_xlabel(r'Current ($\mu A$ for PalmSense and nA for boards)')
 	ax1.set_ylabel('Oxygen, %')
-	ext = '$y = {:.2E}xˆ2{:+.2E}x{:+.2E}$'.format(*popt)
+	ext = '$y = {:.2E}xE2{:+.2E}x{:+.2E}$'.format(*popt)
 	plt.title(name+'\n'+ext, y=1)
 	ax1.ticklabel_format(axis='y',style='sci',scilimits=(0,4))
 	ax1.minorticks_on()
