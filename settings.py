@@ -1,11 +1,12 @@
+import os
+
 Data = {}
 #Settings for application
-
-pathcv = 'Data/Curves/'
+pathcv = os.path.join(os.getcwd(),'Data','Curves')
 #Folder for conversion of PalmSense files
-convertfolder = pathcv + 'converted/'
+convertfolder = os.path.join(os.getcwd(),pathcv,'converted')
 
-pathCurrentBoard = 'Data/OxygenBoard/'
+pathCurrentBoard = os.path.join(os.getcwd(), 'Data','OxygenBoard')
 palmsenseExtention = '.csv'
 
 #Filenames for boards
@@ -26,12 +27,12 @@ plotnames = ['Oxygen lvl', 'Time']
 OxResponseName = 'Current(nA)'
 
 # Path for RAW data 
-resultfolder = 'Result/RawData/'
-ResponseFolder ='Result/Response/'
+resultfolder = os.path.join(os.getcwd(),'Result','RawData')
+ResponseFolder =os.path.join(os.getcwd(),'Result','Response')
 FinalDataName = 'RawData'
 
 #Files path for cleaned data from boards
-PathBoardCleaned = pathCurrentBoard + 'converted/'
+PathBoardCleaned = os.path.join(os.getcwd(),pathCurrentBoard,'converted')
 
 #Naming and col numbers for oxygen level
 oxygencols = (0,1,3)
@@ -45,11 +46,13 @@ oxygenboardcolnames = ['CurrentOnBoard']
 oxygenboardcols = (0,1)
 # 
 timeerror = 2
-currentsetpoint = 2
-averangetime = 0.5
+currentsetpoint = 0.1
+
+#POINTS!!!!
+averangetime = 5
 
 # Path for oxygen reference data
-pathOx = 'Data/Oxygen/'
+pathOx = os.path.join(os.getcwd(),'Data','Oxygen')
 
 #Settings for PalmSense converte
 decodefrom = 'utf-16'

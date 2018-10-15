@@ -7,10 +7,10 @@ def ConvertPalmSenseCSV(pathcv = st.pathcv,
 	convertfolder = st.convertfolder):
 
 	#If where is no folder - create it!
-	convertfolder = pathcv+'converted/'
+	convertfolder = os.path.join(pathcv,'converted')
 
 	#Check if folder for converted files exists	#Create list of all CSV files
-	filestoconvert = glob(pathcv+'/*.csv')
+	filestoconvert = glob(os.path.join(pathcv,'*.csv'))
 	# If no files to convert break program
 	if not filestoconvert:
 		print('No CSV files from PalmSense to convert!')
@@ -26,7 +26,7 @@ def ConvertPalmSenseCSV(pathcv = st.pathcv,
 		with open(i, 'r', encoding = decodefrom) as f: contents = f.read()
 		logging.info('Write File %s!' % i)
 		newfilename = addzero(
-			filename = re.sub(pathcv, convertfolder, i), 
+			filename = os.path.join(convertfolder, os.path.basename(i)),
 			length = length
 			)
 		with open(newfilename, 'w', encoding = encodeto) as f: f.write(contents)
@@ -40,13 +40,10 @@ def addzero(filename, length):
 	newfilename = re.sub(r'(-\d+.csv)', '-'+zeros+numberoffile+'.csv', filename)
 	return newfilename
 
-# def multiconverter():
-
-
 def ConvertOxygenBoard(path = st.pathCurrentBoard, ext = st.BoardFileExtention,
 	cpath = st.PathBoardCleaned, a = st.ErrorCodes):
 	#Get all files from folder
-	filestoconvert = glob(path+'*'+ext)
+	filestoconvert = glob(path+os.sep+'*'+ext)
 	if not os.path.exists(cpath): 
 		os.makedirs(cpath)
 	else: 
