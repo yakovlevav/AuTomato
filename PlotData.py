@@ -5,7 +5,7 @@ import settings as st
 import datacollector as dc
 import numpy as np
 from datetime import datetime, timedelta
-import tools
+import tools, os
 
 def findkeys(dictionary, name = 'Current'):
 	"""
@@ -77,7 +77,7 @@ def PlotOxygen(pathname, ShowTime = True):
 
 	#np.export
 	###############################
-	plt.savefig(st.ResponseFolder+name+'.png', dpi= 300, 
+	plt.savefig(st.ResponseFolder+os.sep+name+'.png', dpi= 300, 
 		bbox_inches='tight')
 	print('Plot for sensors %s - done'%name)
 
