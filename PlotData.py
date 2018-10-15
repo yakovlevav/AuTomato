@@ -40,7 +40,7 @@ def PlotOxygen(pathname, ShowTime = True):
 	for x in data.keys(): 
 		if 'Current' in x: CurrentName = x
 
-	y, x, t = data['Oxygen_lvl'], data[CurrentName], data['Time']
+	y, x, t = data['Oxygen lvl'], data[CurrentName], data['Time']
 
 	#Curve function
 	fig1 = plt.figure()
