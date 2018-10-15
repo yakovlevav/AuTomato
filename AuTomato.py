@@ -10,7 +10,7 @@ def Oxboard():
 	pt.plotter(ShowTime = False)
 
 def PalmSense():
-	# dc.get_ox_ps()
+	dc.get_ox_ps()
 	pt.plotter(ShowTime = True)
 
 if __name__ == '__main__':
