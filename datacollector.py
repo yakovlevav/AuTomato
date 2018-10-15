@@ -92,7 +92,7 @@ def AddRefOxygen():
 	st.Data = data
 	return(data)
 
-def current(SetTime, averangetime = 0.1, pathCurrent = st.convertfolder, filetype = st.palmsenseExtention):
+def current(SetTime, averangetime = 5, pathCurrent = st.convertfolder, filetype = st.palmsenseExtention):
 	'''
 	Get data files from the folder. Strip time from the file
 	Get data point from Time variable, create dictionary with
@@ -113,13 +113,13 @@ def current(SetTime, averangetime = 0.1, pathCurrent = st.convertfolder, filetyp
 		        skip_header = 6,
 		        skip_footer = 1,
 		        invalid_raise = False,
-		        encoding = 'UTF-8',
+		        # encoding = 'UTF-8',
 		        ).tolist()
 		# Calculate minimum value
 		GoalTimeLast = min(data[0], key=lambda x:abs(x-SetTime)) #Current at time
 		GoalTimeSecond = GoalTimeLast - averangetime #Current at time
 		indexlast = data[0].index(GoalTimeLast) #FindIndex
-		indexprev = data[0].index(GoalTimeSecond)
+		indexprev = indexlast - averangetime
 		Current = np.mean(data[1][indexprev:indexlast])
 		FinalDict[time] = [Current]
 	FinalDict['Time'] = ['Current@%ss'%GoalTimeLast]
@@ -152,10 +152,10 @@ def get_ox_ps():
 	Get oxygen data in form of dictionaty {Time:[Oxygen level, Temperature]}
 	and set it in dictionary
 	'''
-	folders = glob(st.pathcv+'*/')
+	folders = glob(st.pathcv + os.sep + '*' + os.sep)
 	for x in folders:
 		conv.ConvertPalmSenseCSV(pathcv = x)
-		data = current(st.currentsetpoint, averangetime = st.averangetime,  pathCurrent = x+'converted/')
+		data = current(st.currentsetpoint, averangetime = st.averangetime,  pathCurrent = os.path.join(x,'converted'))
 		st.Data = MatchData(data, 
 			get(
 				path = st.pathOx,
