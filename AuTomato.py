@@ -2,6 +2,7 @@ import converters as conv
 import datacollector as dc
 import settings as st
 import PlotData as pt
+import initialize as init
 
 def Oxboard():
 	conv.ConvertOxygenBoard()
@@ -13,7 +14,9 @@ def PalmSense():
 	pt.plotter(ShowTime = True)
 
 if __name__ == '__main__':
+	#Create folder structure
+	init = init.initialize()
 	# Oxygen boards measurment
-	Oxboard()
+	# Oxboard()
 	# Palm Sense collecting and plotting
-	PalmSense()
+	# PalmSense()
