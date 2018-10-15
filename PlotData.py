@@ -43,7 +43,6 @@ def PlotOxygen(pathname, ShowTime = True):
 	fig1 = plt.figure()
 	ax1 = plt.subplot(111)
 	# # Figure size in inches
-	# fig1.set_size_inches(3.54,3.54)
 
 	#Adjusting
 	plt.tick_params(
@@ -75,7 +74,6 @@ def PlotOxygen(pathname, ShowTime = True):
 
 	#Export
 	###############################
-	# plt.show()
 	plt.savefig(st.ResponseFolder+name+'.png', dpi= 300, 
 		bbox_inches='tight')
 	print('Plot for sensors %s - done'%name)

@@ -6,11 +6,11 @@ import PlotData as pt
 def Oxboard():
 	conv.ConvertOxygenBoard()
 	dc.getoxygenboard()
-	# pt.plotter(ShowTime = False)
+	pt.plotter(ShowTime = False)
 
 def PalmSense():
 	dc.get_ox_ps()
-	pt.plotter()
+	pt.plotter(ShowTime = False)
 
 if __name__ == '__main__':
 	Oxboard()
