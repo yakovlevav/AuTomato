@@ -10,7 +10,7 @@ def getfilelist(path, filetype, comment = 'No comment'):
 	filefils = sorted(glob(os.path.join(path + os.sep + '*'+ filetype)))
 	print(comment)
 	if not filefils: 
-		print('No data in path: %s with extention %s'%(os.path.join(path,filetype)))
+		print('No data in path: %s with extention %s'%(os.path.join(path,filetype)),ext)
 		sys.exit('Programm crashed!')
 	else: 
 		print('Collect data file for path %s'%(path+filetype))
