@@ -117,7 +117,6 @@ def current(SetTime, averangetime = 5, pathCurrent = st.convertfolder, filetype 
 		        ).tolist()
 		# Calculate minimum value
 		GoalTimeLast = min(data[0], key=lambda x:abs(x-SetTime)) #Current at time
-		GoalTimeSecond = GoalTimeLast - averangetime #Current at time
 		indexlast = data[0].index(GoalTimeLast) #FindIndex
 		indexprev = indexlast - averangetime
 		Current = np.mean(data[1][indexprev:indexlast])
