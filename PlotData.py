@@ -66,9 +66,9 @@ def PlotOxygen(pathname, ShowTime = True):
 	b, = plt.plot(xn1,yn1,'r') #Line
 	name = tools.FindFilename(pathname)
 	#Adjust plot parameters
-	ax1.set_xlabel('Current \n(\muA for PS/nA for boards)')
-	ax1.set_ylabel(r'Oxygen, %')
-	ext = 'y = {:.2E}xˆ2{:+.2E}x{:+.2E}'.format(*popt)
+	ax1.set_xlabel(r'Current ($\mu A$ for PalmSense and nA for boards)')
+	ax1.set_ylabel('Oxygen, %')
+	ext = '$y = {:.2E}xˆ2{:+.2E}x{:+.2E}$'.format(*popt)
 	test = func(3500,*popt)
 	plt.title(name+'\n'+ext, y=1)
 	ax1.ticklabel_format(axis='y',style='sci',scilimits=(0,4))
