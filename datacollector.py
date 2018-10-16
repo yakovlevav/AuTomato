@@ -63,17 +63,20 @@ def MatchData(First, Second):
 		#Find close time from the list of times
 		timelist = list(First.keys())
 		ClosestTime = lambda a, b: min(b, key=lambda d: abs(d - a))
-
 		for Time in tqdm(Second):
 			CTime = ClosestTime(Time, timelist)
-			if abs(CTime-Time) > timedelta(st.timeerror):
+			print(CTime)
+			if abs(CTime-Time) > timedelta(0,st.timeerror):
+				print('test')
 				continue
 			else:
 				result[CTime] = First.get(CTime) + Second.get(Time)
+		print(First)
+		print(Second)
 		#Check is you have zero results
 		if len(result) == 1:
 			print('No corresponding time data!')
-			return(First)
+			# return(First)
 		else:
 			print('Appending - done!')
 			return(result)

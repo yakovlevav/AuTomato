@@ -11,7 +11,7 @@ def Oxboard():
 
 def PalmSense():
 	dc.get_ox_ps()
-	pt.plotter(ShowTime = True)
+	# pt.plotter(ShowTime = True)
 
 if __name__ == '__main__':
 	#Create folder structure
@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
 	'''If you see NaN error, please check data!
 	At the moment it's not implemented completely'''
-	Oxboard()
+	# Oxboard()
 
 	# Palm Sense collecting and plotting
-	# PalmSense()
+	PalmSense()
