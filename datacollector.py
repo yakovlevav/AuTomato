@@ -138,7 +138,7 @@ def writedata(resultfolder = st.resultfolder, FinalDataName = st.FinalDataName, 
 	filename = os.path.join(resultfolder, FinalDataName+ext)
 	with open(filename, 'w') as file:
 		output = 'Time,'+','.join(str(e) for e in st.Data.pop('Time'))+'\n'
-		for key in st.Data:
+		for key in sorted(st.Data):
 			listtotext = ','.join(str(e) for e in st.Data[key])
 			keytotext = key.strftime("%Y-%m-%d %H:%M:%S")+','
 			output+=(keytotext+listtotext+'\n')
