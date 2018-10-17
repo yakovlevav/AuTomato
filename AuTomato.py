@@ -5,8 +5,8 @@ import PlotData as pt
 import initialize as init
 
 def Oxboard():
-	# conv.ConvertOxygenBoard()
-	# dc.getoxygenboard()
+	conv.ConvertOxygenBoard()
+	dc.getoxygenboard()
 	pt.plotter(ShowTime = False)
 
 def PalmSense():

@@ -151,7 +151,8 @@ def get_ox_ps():
 	Get oxygen data in form of dictionaty {Time:[Oxygen level, Temperature]}
 	and set it in dictionary
 	'''
-	folders = glob(st.pathcv + os.sep + '*' + os.sep)
+	# folders = glob(st.pathcv + os.sep + '*' + os.sep)
+	folders = tools.getfilelist(st.pathcv, os.sep, comment = 'Getting folder list for Oxygen curves')
 	for x in folders:
 		conv.ConvertPalmSenseCSV(pathcv = x)
 		data = current(st.currentsetpoint, averangetime = st.averangetime,  pathCurrent = os.path.join(x,'converted'))
@@ -208,5 +209,6 @@ def getoxygenboard():
 		writedata(st.resultfolder, name, st.FinRAWExtention)
 
 def ImportRaw(pathname):
-	a = pd.read_csv(pathname)
-	return a.to_dict()
+	DataFrame = pd.read_csv(pathname)
+	DataFrame.dropna()
+	return DataFrame

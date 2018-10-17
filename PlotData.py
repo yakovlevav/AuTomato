@@ -25,7 +25,7 @@ def PlotOxygen(pathname, ShowTime = True):
 	# 	return c0 + c1*t - c2*np.exp(-c3*t)
 	def func(x, a, b, c):
 	    return a*x**2+b*x+c
-		# return d+(a-d)/(1+(x/c)**b)
+		# return d+(a-d)/(1+(x/c)**b  )
 
 	#Curve fitting
 	def fit(x, y):
@@ -40,8 +40,8 @@ def PlotOxygen(pathname, ShowTime = True):
 	for x in data.keys(): 
 		if 'Current' in x: CurrentName = x
 
-	y, x, t = data['Oxygen lvl'], data[CurrentName], data['Time']
-
+	y, x, t = data['Oxygen lvl'].tolist(), data[CurrentName].tolist(), data['Time'].tolist()
+	print(y)
 	#Curve function
 	fig1 = plt.figure()
 	ax1 = plt.subplot(111)
