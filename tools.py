@@ -6,14 +6,14 @@ def getfilelist(path, filetype, comment = 'No comment'):
 	'''
 	Get list of files in path and check if files exist
 	'''
-
-	filefils = sorted(glob(os.path.join(path + os.sep + '*'+ filetype)))
+	fullpath = os.path.join(path,'*'+filetype)
+	filefils = sorted(glob(fullpath))
 	print(comment)
 	if not filefils: 
-		print('No data in path: %s'%(os.path.join(path,filetype))
+		print( 'No data in path: %s'%fullpath )
 		sys.exit('Programm crashed!')
 	else: 
-		print('Collect data file for path %s'%(path+filetype))
+		print('Collect data file for path %s and type %s'%(path, filetype))
 		print('Number of files: {}'.format(len(filefils)))
 		return filefils
 
