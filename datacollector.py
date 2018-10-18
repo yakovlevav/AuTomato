@@ -12,7 +12,6 @@ def FindName(path, filetype):
 	file = os.listdir(path)[0]
 	return(file.split('.')[0])
 
-
 def get(path, cols, skip_header = False, skip_footer = False, colnames = None, filetype = '*.txt'):
 		'''
 		Gel all data files with *.txt type from the folder.
@@ -208,7 +207,36 @@ def getoxygenboard():
 					))
 		writedata(st.resultfolder, name, st.FinRAWExtention)
 
+
+#Pandas experimants
+
 def ImportRaw(pathname):
 	DataFrame = pd.read_csv(pathname)
 	DataFrame.dropna()
 	return DataFrame
+
+def	newgetrefox(pathname):
+	'''
+	Read CSV file from oxygen reference sensors and return pandas dataframe
+	'''
+	DF = pd.read_csv(pathname,
+		names = ['Time', 'Oxygen', 'Partial pressure', 'Temperature', 'Pressure'],
+		# parse_dates = [1], #Use it for dated in format of ISO 8601
+		)
+	DF['Time'] = pd.to_datetime(DF['Time'], format='%Y-%m-%d %H:%M:%S')
+	return(DF)
+
+def newgetcurrent():
+	DF = pd.read_csv('Data/OxygenBoard/18111602_raw_Ox.txt',
+		sep=',T:| C|O:| nA',
+		engine='python',skipfooter = 13,
+		usecols = [0,1,3],
+		error_bad_lines = False,
+		warn_bad_lines=False,
+		names = {'Time': 0, 'Temperature':1, 'Current_nA':3},
+		skip_blank_lines = True,
+		infer_datetime_format = True,
+		)
+	print(DF)
+ 
+newgetcurrent()
