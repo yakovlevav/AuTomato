@@ -53,6 +53,7 @@ averangetime = 5
 
 # Path for oxygen reference data
 pathOx = os.path.join(os.getcwd(),'Data','Oxygen')
+OxExt = '.txt'
 
 #Settings for PalmSense converte
 decodefrom = 'utf-16'

@@ -7,6 +7,9 @@ from glob import glob
 import converters as conv
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import pytz
+from scipy import polyfit
 
 def FindName(path, filetype):
 	file = os.listdir(path)[0]
@@ -212,7 +215,7 @@ def getoxygenboard():
 
 def ImportRaw(pathname):
 	DataFrame = pd.read_csv(pathname)
-	DataFrame.dropna()
+	DF = DataFrame.dropna()
 	return DataFrame
 
 def	newgetrefox(pathname):
@@ -226,17 +229,79 @@ def	newgetrefox(pathname):
 	DF['Time'] = pd.to_datetime(DF['Time'], format='%Y-%m-%d %H:%M:%S')
 	return(DF)
 
-def newgetcurrent():
-	DF = pd.read_csv('Data/OxygenBoard/18111602_raw_Ox.txt',
+def newgetcurrent(pathname, addtime = '2h'):
+	'''
+	Import file from Oxygen Board and create pandas data frame.
+	Drop NaN and error bad lines
+	'''
+	DF = pd.read_csv(pathname,
 		sep=',T:| C|O:| nA',
-		engine='python',skipfooter = 13,
+		engine='python',skipfooter = 12,
 		usecols = [0,1,3],
 		error_bad_lines = False,
 		warn_bad_lines=False,
 		names = {'Time': 0, 'Temperature':1, 'Current_nA':3},
+		dtype = {'Time': str, 'Temperature':float, 'Current_nA':float},
 		skip_blank_lines = True,
-		infer_datetime_format = True,
-		)
-	print(DF)
- 
-newgetcurrent()
+		).dropna()
+	#Remove zero temperatures
+	DF = DF.loc[DF['Temperature'] != 00.0]
+	#For some reason have time difference in 2h, quick fix
+	DF['Time'] = pd.to_datetime(DF['Time'], unit='s')+ pd.Timedelta(addtime)
+	return(DF)
+
+def newcomparetime(DF1, DF2, tolerance = '1s', MatchBy = 'Time'):
+	'''
+	Function for merging two pandas data frame with
+	correcponding time. Inputs two data frames of pandas
+	and toleranse as as string.
+	'''
+	DF1, DF2 = DF1.sort_values(by = 'Time'), DF2.sort_values(by = 'Time')
+	MR = pd.merge_asof(DF1, DF2,
+		on = MatchBy,			
+		direction = 'nearest',
+		suffixes = ('_Board', '_GR'),
+		tolerance=pd.Timedelta(tolerance)
+		).dropna()
+	return(MR)
+
+def ifnamefitthedate(pathname):
+	'''
+	Find date from filename
+	In future is better to write date
+	in better format.
+	'''
+	name = tools.FindFilename(pathname)
+	date = name.split('_')
+	print(date[1:])
+
+def newgetoxygenboards():
+	files = tools.getfilelist(st.pathCurrentBoard, st.BoardFileExtention)
+	oxfiles = tools.getfilelist(st.pathOx, st.OxExt)
+	ifnamefitthedate(oxfiles[0])
+	
+
+	# for x in files:
+	# 	name = tools.FindFilename(x)
+	# 	DF1 = newgetcurrent(x)
+
+	# 	writedata(st.resultfolder, name, st.FinRAWExtention)
+
+def	plt_current_ox(DF1, DF2):
+	a = newcomparetime(DF1, DF2)
+	a.plot('Current_nA', 'Oxygen', kind = 'scatter')
+	plt.show()
+
+def plotTstab(relpath):
+	name = tools.FindFilename(relpath)
+	df = newgetcurrent(relpath)
+	xmin, xmax = df['Temperature'].min(), df['Temperature'].max()
+	m, b = polyfit(df['Temperature'], df['Current_nA'],1)
+	df.plot('Temperature','Current_nA',kind = 'scatter')
+	xnew = np.arange(xmin, xmax)
+	plt.plot(xnew,m*xnew+b, 'r')
+	plt.title('%s \n a = %.2f, b = %.2f'%(name,m,b))
+	plt.show()
+
+plotTstab('Data/OxygenBoard/18111602_raw.txt')
+# newgetoxygenboards()
