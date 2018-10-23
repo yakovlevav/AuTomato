@@ -10,6 +10,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import pytz
 from scipy import polyfit
+from matplotlib.ticker import FormatStrFormatter
+
 
 def FindName(path, filetype):
 	file = os.listdir(path)[0]
@@ -318,7 +320,30 @@ def AddCorrectedCurrent(PdBoardOx, comp = 75.3):
 def reverscalc(value, t, comp, a, b):
 	print('Current before - %.2f'%value)
 	print('Current after - %.2f'%(value-(t-20)*comp))
-	return((value-(25-t)*comp)*a+b)
+	return((value-(t-20)*comp)*a+b)
+
+def	plt_time_ox(df, comp, a, b):
+	df['Ox_From_Calibration'] = (df['Current_nA']-(df['Temperature']-20)*comp)*a+b
+	print(df)
+	plt.gcf().autofmt_xdate()
+	# df.plot('Ox_From_Calibration')
+	fig, axes = plt.subplots(sharex=True)
+	axes.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+	# axes.ticklabel_format(axis='y',style='sci',scilimits=(0,2))
+
+	plt.ylim(18,22)
+	plt.grid()
+	df.plot('Time', 'Ox_From_Calibration', kind = 'line', ax=axes)
+	mean, std = df['Ox_From_Calibration'].mean(), df['Ox_From_Calibration'].std()
+	plt.title('Sensor accuracy - $%.2f \pm %.2f$'%(mean, std))
+	plt.axhline(mean, color = 'r')
+	plt.axhline(mean+std, color = 'r')
+	plt.axhline(mean-std, color = 'r')
+	plt.yticks(list(plt.yticks()[0])+[mean,mean+std, mean-std])
+	df.plot('Time', 'Current_nA', kind = 'line', ax=axes, secondary_y=True)
+	# axes.legend(loc='center left', bbox_to_anchor=(1.0, 1.0))
+
+
 # def STPoxygen(DF):
 # 	DF[]
 
@@ -334,6 +359,7 @@ def reverscalc(value, t, comp, a, b):
 ##########
 
 comp = plotTstab('Data/OxygenBoard/TempStab/81019144.txt')
+
 PdBoardOx = newgetcurrent('Data/OxygenBoard/81018144_raw.txt')
 PdRefOx = newgetrefox('Data/Oxygen/Oxygen_2018_10_19.txt')
 
@@ -341,7 +367,10 @@ PdBoardOx = AddCorrectedCurrent(PdBoardOx, comp)
 plt_current_ox(PdBoardOx, PdRefOx, comment = 'No correction')
 c = plt_current_ox(PdBoardOx, PdRefOx, x = 'Current_nA(20C)', comment = 'Temp correction')
 
-print(reverscalc(4615, 24.6, comp, *c))
+# print(reverscalc(4615, 24.6, comp, *c))
 
-# plt.show()
+#Calibration check
+calibrationtest = newgetcurrent('Data/OxygenBoard/TempStab/81019144.txt')
+plt_time_ox(calibrationtest, comp, *c)
+plt.show()
 # newgetoxygenboards()
