@@ -287,21 +287,61 @@ def newgetoxygenboards():
 
 	# 	writedata(st.resultfolder, name, st.FinRAWExtention)
 
-def	plt_current_ox(DF1, DF2):
-	a = newcomparetime(DF1, DF2)
-	a.plot('Current_nA', 'Oxygen', kind = 'scatter')
-	plt.show()
+def	plt_current_ox(PdBoardOx, PdRefOx, comment = '', x = 'Current_nA', y = 'Oxygen'):
+	df = newcomparetime(PdBoardOx, PdRefOx)
+	df.plot(x, y, kind = 'scatter')
+	xmin, xmax = df[x].min(), df[x].max()
+	coeff = polyfit(df[x], df[y],1)
+	f = np.poly1d(coeff)
+	plt.title('%s\nFit: a = %.2E, b = %.2E\n'%(comment,*coeff))
+	xnew = np.arange(xmin, xmax)
+	plt.plot(xnew,f(xnew), 'r')
+	return(coeff)
 
-def plotTstab(relpath):
+def plotTstab(relpath, tname = 'Temperature', cname = 'Current_nA'):
 	name = tools.FindFilename(relpath)
 	df = newgetcurrent(relpath)
-	xmin, xmax = df['Temperature'].min(), df['Temperature'].max()
-	m, b = polyfit(df['Temperature'], df['Current_nA'],1)
-	df.plot('Temperature','Current_nA',kind = 'scatter')
-	xnew = np.arange(xmin, xmax)
-	plt.plot(xnew,m*xnew+b, 'r')
-	plt.title('%s \n a = %.2f, b = %.2f'%(name,m,b))
-	plt.show()
+	#Fit
+	coeff = polyfit(df[tname], df[cname],1)
+	f = np.poly1d(coeff)
+	xnew = np.arange(df[tname].min(), df[tname].max())
+	#
+	df.plot(tname,cname,kind = 'scatter')
+	plt.plot(xnew,f(xnew), 'r')
+	plt.title('%s \nFit: a = %.2f, b = %.2f'%(name,*coeff))
+	return(coeff[0])
 
-plotTstab('Data/OxygenBoard/18111602_raw.txt')
+def AddCorrectedCurrent(PdBoardOx, comp = 75.3):
+	PdBoardOx['Current_nA(20C)'] = PdBoardOx['Current_nA']-(PdBoardOx['Temperature']-20)*comp
+	return(PdBoardOx)
+
+def reverscalc(value, t, comp, a, b):
+	print('Current before - %.2f'%value)
+	print('Current after - %.2f'%(value-(t-20)*comp))
+	return((value-(25-t)*comp)*a+b)
+# def STPoxygen(DF):
+# 	DF[]
+
+############
+# PdBoardOx = newgetcurrent('Data/OxygenBoard/18111602_raw_Ox.txt')
+# PdRefOx = newgetrefox('Data/Oxygen/Oxygen_2018_10_16.txt')
+
+# PdBoardOx = AddCorrectedCurrent(PdBoardOx, current = 75.3)
+
+# plt_current_ox(PdBoardOx, PdRefOx, comment = 'No correction')
+# plt_current_ox(PdBoardOx, PdRefOx, x = 'Current_nA(25C)', comment = 'Temp correction')
+
+##########
+
+comp = plotTstab('Data/OxygenBoard/TempStab/81019144.txt')
+PdBoardOx = newgetcurrent('Data/OxygenBoard/81018144_raw.txt')
+PdRefOx = newgetrefox('Data/Oxygen/Oxygen_2018_10_19.txt')
+
+PdBoardOx = AddCorrectedCurrent(PdBoardOx, comp)
+plt_current_ox(PdBoardOx, PdRefOx, comment = 'No correction')
+c = plt_current_ox(PdBoardOx, PdRefOx, x = 'Current_nA(20C)', comment = 'Temp correction')
+
+print(reverscalc(4615, 24.6, comp, *c))
+
+# plt.show()
 # newgetoxygenboards()
