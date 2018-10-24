@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import pytz
 from scipy import polyfit
 from matplotlib.ticker import FormatStrFormatter
+from matplotlib import cm
+from matplotlib.backends.backend_pdf import PdfPages
 
 
 def FindName(path, filetype):
@@ -300,15 +302,16 @@ def	plt_current_ox(PdBoardOx, PdRefOx, comment = '', x = 'Current_nA', y = 'Oxyg
 	plt.plot(xnew,f(xnew), 'r')
 	return(coeff)
 
-def plotTstab(relpath, tname = 'Temperature', cname = 'Current_nA'):
+def plotTstab(relpath, correction, tname = 'Temperature', cname = 'Current_nA'):
 	name = tools.FindFilename(relpath)
 	df = newgetcurrent(relpath)
 	#Fit
 	coeff = polyfit(df[tname], df[cname],1)
 	f = np.poly1d(coeff)
-	xnew = np.arange(df[tname].min(), df[tname].max())
+	xnew = np.arange(df[tname].min(), df[tname].max(),0.1)
 	#
 	df.plot(tname,cname,kind = 'scatter')
+	coeff[0] += correction
 	plt.plot(xnew,f(xnew), 'r')
 	plt.title('%s \nFit: a = %.2f, b = %.2f'%(name,*coeff))
 	return(coeff[0])
@@ -330,8 +333,7 @@ def	plt_time_ox(df, comp, a, b):
 	fig, axes = plt.subplots(sharex=True)
 	axes.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
 	# axes.ticklabel_format(axis='y',style='sci',scilimits=(0,2))
-
-	plt.ylim(18,22)
+	# plt.ylim(18,22)
 	plt.grid()
 	df.plot('Time', 'Ox_From_Calibration', kind = 'line', ax=axes)
 	mean, std = df['Ox_From_Calibration'].mean(), df['Ox_From_Calibration'].std()
@@ -340,37 +342,42 @@ def	plt_time_ox(df, comp, a, b):
 	plt.axhline(mean+std, color = 'r')
 	plt.axhline(mean-std, color = 'r')
 	plt.yticks(list(plt.yticks()[0])+[mean,mean+std, mean-std])
-	df.plot('Time', 'Current_nA', kind = 'line', ax=axes, secondary_y=True)
+	df.plot('Time', 'Temperature', kind = 'line', ax=axes, secondary_y=True)
 	# axes.legend(loc='center left', bbox_to_anchor=(1.0, 1.0))
 
 
-# def STPoxygen(DF):
-# 	DF[]
+def	saving(pathname):
+	plt.savefig(pathname+'.png', dpi= 300, bbox_inches='tight')
+	pass
 
-############
-# PdBoardOx = newgetcurrent('Data/OxygenBoard/18111602_raw_Ox.txt')
-# PdRefOx = newgetrefox('Data/Oxygen/Oxygen_2018_10_16.txt')
+def analyse(TempStab, Calibration, Reference, test, correction = 1):
+	#Find name from the temperature calibration
+	name = tools.FindFilename(TempStab)
+	#Create subfolder for the calibration file
+	path = os.path.join('Result','TemperatureCompensation',name)
+	if not os.path.exists(path): os.makedirs(path)
+	pathname = os.path.join(path,name)
+	#
+	comp = plotTstab(TempStab, correction)
+	saving(pathname+'_tstab')
+	PdBoardOx = newgetcurrent(Calibration)
+	PdRefOx = newgetrefox(Reference)
+	PdBoardOx = AddCorrectedCurrent(PdBoardOx, comp)
+	plt_current_ox(PdBoardOx, PdRefOx, comment = 'No correction')
+	saving(pathname+'_calibration_nc')
+	c = plt_current_ox(PdBoardOx, PdRefOx, x = 'Current_nA(20C)', comment = 'Temp correction')
+	saving(pathname+'_calibration_tcorr')
+	##
+	## Calibration check
+	calibrationtest = newgetcurrent(test)
+	plt_time_ox(calibrationtest, comp, *c)
+	saving(pathname+'_test')
+	pass
 
-# PdBoardOx = AddCorrectedCurrent(PdBoardOx, current = 75.3)
+# plt.show()
 
-# plt_current_ox(PdBoardOx, PdRefOx, comment = 'No correction')
-# plt_current_ox(PdBoardOx, PdRefOx, x = 'Current_nA(25C)', comment = 'Temp correction')
-
-##########
-
-comp = plotTstab('Data/OxygenBoard/TempStab/81019144.txt')
-
-PdBoardOx = newgetcurrent('Data/OxygenBoard/81018144_raw.txt')
-PdRefOx = newgetrefox('Data/Oxygen/Oxygen_2018_10_19.txt')
-
-PdBoardOx = AddCorrectedCurrent(PdBoardOx, comp)
-plt_current_ox(PdBoardOx, PdRefOx, comment = 'No correction')
-c = plt_current_ox(PdBoardOx, PdRefOx, x = 'Current_nA(20C)', comment = 'Temp correction')
-
-# print(reverscalc(4615, 24.6, comp, *c))
-
-#Calibration check
-calibrationtest = newgetcurrent('Data/OxygenBoard/TempStab/81019144.txt')
-plt_time_ox(calibrationtest, comp, *c)
-plt.show()
-# newgetoxygenboards()
+TempStab = 'Data/BoardTemperature/81022149.txt'
+Calibration = 'Data/OxygenBoard/81022149_raw.txt'
+Reference = 'Data/Oxygen/Oxygen_2018_10_23.txt'
+test = 'Data/BoardCurrentToOx/81022149_raw.txt'
+analyse(TempStab, Calibration, Reference, test, correction = 2)
