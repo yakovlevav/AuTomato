@@ -227,9 +227,9 @@ def	newgetrefox(pathname):
 	Read CSV file from oxygen reference sensors and return pandas dataframe
 	'''
 	DF = pd.read_csv(pathname,
-		names = ['Time', 'Oxygen', 'Partial pressure', 'Temperature', 'Pressure'],
+		names = ['Time', 'Oxygen ref', 'Partial pressure', 'Temperature', 'Pressure'],
 		# parse_dates = [1], #Use it for dated in format of ISO 8601
-		)
+		).dropna()
 	DF['Time'] = pd.to_datetime(DF['Time'], format='%Y-%m-%d %H:%M:%S')
 	return(DF)
 
@@ -244,8 +244,8 @@ def newgetcurrent(pathname, addtime = '2h'):
 		usecols = [0,1,3],
 		error_bad_lines = False,
 		warn_bad_lines=False,
-		names = {'Time': 0, 'Temperature':1, 'Current_nA':3},
-		dtype = {'Time': str, 'Temperature':float, 'Current_nA':float},
+		names = {'Time': 0, 'Temperature':1, 'Current nA':3},
+		dtype = {'Time': str, 'Temperature':float, 'Current nA':float},
 		skip_blank_lines = True,
 		).dropna()
 	#Remove zero temperatures
@@ -264,34 +264,58 @@ def newcomparetime(DF1, DF2, tolerance = '1s', MatchBy = 'Time'):
 	MR = pd.merge_asof(DF1, DF2,
 		on = MatchBy,			
 		direction = 'nearest',
-		suffixes = ('_Board', '_GR'),
+		suffixes = (' Board', ' GR'),
 		tolerance=pd.Timedelta(tolerance)
 		).dropna()
 	return(MR)
 
-def ifnamefitthedate(pathname):
+def nametodate(filelist):
 	'''
-	Find date from filename
-	In future is better to write date
-	in better format.
+	Find date from filename of oxygen files.
+	And convert path list to date list in return.
 	'''
-	name = tools.FindFilename(pathname)
-	date = name.split('_')
-	print(date[1:])
+	datelist = []
+	for pathname in filelist:
+		name = tools.FindFilename(pathname)
+		date = name.split('_')
+		tr = tuple(map(int, date[1:]))
+		time = datetime(*tr).date()
+		datelist.append(time)
+	return(sorted(datelist))
+
+def refoxtimefilter(df, filelist):
+	min, max = df.Time.min().date(), df.Time.max().date()
+	time = nametodate(filelist)
+	if min and max in time: 
+		print('Oxygen reference files in the measurment range')
+		low, high = time.index(min), time.index(max)
+		filelist = filelist[low:high+1]
+	return(filelist)
 
 def newgetoxygenboards():
-	files = tools.getfilelist(st.pathCurrentBoard, st.BoardFileExtention)
-	oxfiles = tools.getfilelist(st.pathOx, st.OxExt)
-	ifnamefitthedate(oxfiles[0])
-	
+	'''
+	Collect data for oxygen boards and save .csv file
+	to the result folder
+	'''
+	##Get file lists {
+	boardfiles = tools.getfilelist(st.pathCurrentBoard, st.BoardFileExtention)
+	oxfiles = sorted(tools.getfilelist(st.pathOx, st.OxExt))
+	#}
+	name = tools.FindFilename(boardfiles[0]) #Find name of the final file
+	## Create pandas data frame 
+	df1 = newgetcurrent(boardfiles[0]) #Get current from the board
+	foxfiles = refoxtimefilter(df1, oxfiles) #Filter ref files to time
+	df2 = pd.DataFrame()
+	for pathname in foxfiles: 
+		df2 = df2.append(newgetrefox(pathname)) #Append oxygen data in one data frame
+	df = newcomparetime(df1, df2, tolerance = '1s', MatchBy = 'Time') #Match data
 
-	# for x in files:
-	# 	name = tools.FindFilename(x)
-	# 	DF1 = newgetcurrent(x)
+	#File export {
+	df.to_csv(os.path.join(st.resultfolder,name+'.csv'), index = False) # Save data as csv
+	#}
+	pass
 
-	# 	writedata(st.resultfolder, name, st.FinRAWExtention)
-
-def	plt_current_ox(PdBoardOx, PdRefOx, comment = '', x = 'Current_nA', y = 'Oxygen'):
+def	plt_current_ox(PdBoardOx, PdRefOx, comment = '', x = 'Current nA', y = 'Oxygen'):
 	df = newcomparetime(PdBoardOx, PdRefOx)
 	df.plot(x, y, kind = 'scatter')
 	xmin, xmax = df[x].min(), df[x].max()
@@ -302,7 +326,7 @@ def	plt_current_ox(PdBoardOx, PdRefOx, comment = '', x = 'Current_nA', y = 'Oxyg
 	plt.plot(xnew,f(xnew), 'r')
 	return(coeff)
 
-def plotTstab(relpath, correction, tname = 'Temperature', cname = 'Current_nA'):
+def plotTstab(relpath, correction, tname = 'Temperature', cname = 'Current nA'):
 	name = tools.FindFilename(relpath)
 	df = newgetcurrent(relpath)
 	#Fit
@@ -317,7 +341,7 @@ def plotTstab(relpath, correction, tname = 'Temperature', cname = 'Current_nA'):
 	return(coeff[0])
 
 def AddCorrectedCurrent(PdBoardOx, comp = 75.3):
-	PdBoardOx['Current_nA(20C)'] = PdBoardOx['Current_nA']-(PdBoardOx['Temperature']-20)*comp
+	PdBoardOx['Current nA(20C)'] = PdBoardOx['Current nA']-(PdBoardOx['Temperature']-20)*comp
 	return(PdBoardOx)
 
 def reverscalc(value, t, comp, a, b):
@@ -325,32 +349,38 @@ def reverscalc(value, t, comp, a, b):
 	print('Current after - %.2f'%(value-(t-20)*comp))
 	return((value-(t-20)*comp)*a+b)
 
-def	plt_time_ox(df, comp, a, b):
-	df['Ox_From_Calibration'] = (df['Current_nA']-(df['Temperature']-20)*comp)*a+b
-	print(df)
+def add_calibration(df, comp, a, b):
+	df['Ox_From_Calibration'] = (df['Current nA']-(df['Temperature']-20)*comp)*a+b
+	return(df)
+
+def	plt_time_ox(df, testox, comp, accuracy, a, b):
+	df = add_calibration(df, comp, a, b)
 	plt.gcf().autofmt_xdate()
-	# df.plot('Ox_From_Calibration')
 	fig, axes = plt.subplots(sharex=True)
 	axes.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
 	# axes.ticklabel_format(axis='y',style='sci',scilimits=(0,2))
 	# plt.ylim(18,22)
 	plt.grid()
 	df.plot('Time', 'Ox_From_Calibration', kind = 'line', ax=axes)
-	mean, std = df['Ox_From_Calibration'].mean(), df['Ox_From_Calibration'].std()
-	plt.title('Sensor accuracy - $%.2f \pm %.2f$'%(mean, std))
-	plt.axhline(mean, color = 'r')
-	plt.axhline(mean+std, color = 'r')
-	plt.axhline(mean-std, color = 'r')
-	plt.yticks(list(plt.yticks()[0])+[mean,mean+std, mean-std])
-	df.plot('Time', 'Temperature', kind = 'line', ax=axes, secondary_y=True)
+	ox = newgetrefox(testox)
+	addox = newcomparetime(df, ox)
+	plt.plot('Time', 'Oxygen', data=addox)
+	if accuracy == True:
+		mean, std = df['Ox_From_Calibration'].mean(), df['Ox_From_Calibration'].std()
+		plt.title('Sensor accuracy - $%.2f \pm %.2f$'%(mean, std))
+		plt.axhline(mean, color = 'r')
+		plt.axhline(mean+std, color = 'r')
+		plt.axhline(mean-std, color = 'r')
+		plt.yticks(list(plt.yticks()[0])+[mean,mean+std, mean-std])
+	# df.plot('Time', 'Temperature', kind = 'line', ax=axes, secondary_y=True)
 	# axes.legend(loc='center left', bbox_to_anchor=(1.0, 1.0))
-
+	return(df)	
 
 def	saving(pathname):
 	plt.savefig(pathname+'.png', dpi= 300, bbox_inches='tight')
 	pass
 
-def analyse(TempStab, Calibration, Reference, test, correction = 1):
+def analyse(TempStab, Calibration, Reference, test, testox, correction = 1):
 	#Find name from the temperature calibration
 	name = tools.FindFilename(TempStab)
 	#Create subfolder for the calibration file
@@ -365,13 +395,18 @@ def analyse(TempStab, Calibration, Reference, test, correction = 1):
 	PdBoardOx = AddCorrectedCurrent(PdBoardOx, comp)
 	plt_current_ox(PdBoardOx, PdRefOx, comment = 'No correction')
 	saving(pathname+'_calibration_nc')
-	c = plt_current_ox(PdBoardOx, PdRefOx, x = 'Current_nA(20C)', comment = 'Temp correction')
+	c = plt_current_ox(PdBoardOx, PdRefOx, x = 'Current nA(20C)', comment = 'Temp correction')
 	saving(pathname+'_calibration_tcorr')
 	##
 	## Calibration check
-	calibrationtest = newgetcurrent(test)
-	plt_time_ox(calibrationtest, comp, *c)
-	saving(pathname+'_test')
+	# stabtest = newgetcurrent(test)
+	# accuracy = False
+	# print(c)
+	# c[0] *= 1.25
+	# c[1] += -8
+	# print(c)
+	# newdf = plt_time_ox(stabtest, testox, comp, accuracy, *c)
+	# saving(pathname+'_test')
 	pass
 
 # plt.show()
@@ -379,5 +414,9 @@ def analyse(TempStab, Calibration, Reference, test, correction = 1):
 TempStab = 'Data/BoardTemperature/81022149.txt'
 Calibration = 'Data/OxygenBoard/81022149_raw.txt'
 Reference = 'Data/Oxygen/Oxygen_2018_10_23.txt'
-test = 'Data/BoardCurrentToOx/81022149_raw.txt'
-analyse(TempStab, Calibration, Reference, test, correction = 2)
+# Calibration = 'Data/BoardCurrentToOx/81022149_chamber.txt'
+# Reference = 'Data/Oxygen/Oxygen_2018_10_24.txt'
+#
+test = 'Data/BoardCurrentToOx/81022149_chamber.txt'
+testox = 'Data/Oxygen/Oxygen_2018_10_24.txt'
+# analyse(TempStab, Calibration, Reference, test, testox, correction = 2)
