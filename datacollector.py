@@ -233,7 +233,7 @@ def	newgetrefox(pathname):
 	DF['Time'] = pd.to_datetime(DF['Time'], format='%Y-%m-%d %H:%M:%S')
 	return(DF)
 
-def newgetcurrent(pathname, addtime = '2h'):
+def newgetboardcurrent(pathname, addtime = '2h'):
 	'''
 	Import file from Oxygen Board and create pandas data frame.
 	Drop NaN and error bad lines
@@ -286,10 +286,12 @@ def nametodate(filelist):
 def refoxtimefilter(df, filelist):
 	min, max = df.Time.min().date(), df.Time.max().date()
 	time = nametodate(filelist)
-	if min and max in time: 
+	if min in time and max in time: 
 		print('Oxygen reference files in the measurment range')
 		low, high = time.index(min), time.index(max)
 		filelist = filelist[low:high+1]
+	else:
+		print('No corresponding reference data')
 	return(filelist)
 
 def newgetoxygenboards():
@@ -301,19 +303,56 @@ def newgetoxygenboards():
 	boardfiles = tools.getfilelist(st.pathCurrentBoard, st.BoardFileExtention)
 	oxfiles = sorted(tools.getfilelist(st.pathOx, st.OxExt))
 	#}
-	name = tools.FindFilename(boardfiles[0]) #Find name of the final file
-	## Create pandas data frame 
-	df1 = newgetcurrent(boardfiles[0]) #Get current from the board
-	foxfiles = refoxtimefilter(df1, oxfiles) #Filter ref files to time
-	df2 = pd.DataFrame()
-	for pathname in foxfiles: 
-		df2 = df2.append(newgetrefox(pathname)) #Append oxygen data in one data frame
-	df = newcomparetime(df1, df2, tolerance = '1s', MatchBy = 'Time') #Match data
+	for	boardN in boardfiles:
+		name = tools.FindFilename(boardN) #Find name of the final file
+		print('Get data for the boards %s...'%name)
+		## Create pandas data frame 
+		df1 = newgetboardcurrent(boardN) #Get current from the board
+		print('Filter data for reference sensor...')
+		foxfiles = refoxtimefilter(df1, oxfiles) #Filter ref files to time
+		df2 = pd.DataFrame()
+		for pathname in foxfiles: 
+			df2 = df2.append(newgetrefox(pathname)) #Append oxygen data in one data frame
+		df = newcomparetime(df1, df2, tolerance = '1s', MatchBy = 'Time') #Match data
+		if df.empty == True: 
+			print('Sorry! No data! Check boards data by hand')
+		else:
+			#File export {
+			df.to_csv(os.path.join(st.resultfolder,name+'.csv'), index = False) # Save data as csv
+			#}
+	pass
 
-	#File export {
-	df.to_csv(os.path.join(st.resultfolder,name+'.csv'), index = False) # Save data as csv
+def newgetpscurrent():
+	pass
+
+def	newgetpalmsens():
+	'''
+	Get data from PalmSens and match with reference oxygen,
+	create pandas data frame and save it in result folder
+	'''
+	settime = '0.8s'
+	##Get file lists {
+	folders = tools.getfilelist(st.pathcv, os.sep, 
+		comment = 'Getting folder list for PalmSense Oxygen curves')
+	for folder in folders:
+		pathnames = tools.getfilelist(folder, filetype = '*.csv')
+		for name in pathnames:
+			df = pd.read_csv(name, 
+				encoding = 'utf-16',
+				header = 5,
+				names = {'Time': 0, 'Current $\mu$A':3},
+				).dropna()
+			df['Time'] = pd.to_datetime(df['Time'], unit='s')
+			# df['Time'] = pd.DatetimeIndex(df['Time']).time#+ pd.Timedelta(addtime)
+			a = df['Time'].index.get_loc(pd.Timedelta(settime), method='nearest')
+			print(a)
+			asdf
 	#}
 	pass
+
+newgetpalmsens()
+
+###
 
 def	plt_current_ox(PdBoardOx, PdRefOx, comment = '', x = 'Current nA', y = 'Oxygen'):
 	df = newcomparetime(PdBoardOx, PdRefOx)
