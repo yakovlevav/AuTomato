@@ -294,6 +294,16 @@ def refoxtimefilter(df, filelist):
 		print('No corresponding reference data')
 	return(filelist)
 
+def getoxarray(df1):
+	#Fix problem with the oxygen files and path!!!
+	oxfiles = sorted(tools.getfilelist(st.pathOx, st.OxExt))
+	print('Filter data for reference sensor...')
+	foxfiles = refoxtimefilter(df1, oxfiles) #Filter ref files to time
+	df2 = pd.DataFrame()
+	for pathname in foxfiles: 
+		df2 = df2.append(newgetrefox(pathname), ignore_index=True) #Append oxygen data in one data frame
+	return(df2)
+
 def newgetoxygenboards():
 	'''
 	Collect data for oxygen boards and save .csv file
@@ -301,18 +311,13 @@ def newgetoxygenboards():
 	'''
 	##Get file lists {
 	boardfiles = tools.getfilelist(st.pathCurrentBoard, st.BoardFileExtention)
-	oxfiles = sorted(tools.getfilelist(st.pathOx, st.OxExt))
 	#}
 	for	boardN in boardfiles:
 		name = tools.FindFilename(boardN) #Find name of the final file
 		print('Get data for the boards %s...'%name)
 		## Create pandas data frame 
 		df1 = newgetboardcurrent(boardN) #Get current from the board
-		print('Filter data for reference sensor...')
-		foxfiles = refoxtimefilter(df1, oxfiles) #Filter ref files to time
-		df2 = pd.DataFrame()
-		for pathname in foxfiles: 
-			df2 = df2.append(newgetrefox(pathname)) #Append oxygen data in one data frame
+		df2 = getoxarray(df1)
 		df = newcomparetime(df1, df2, tolerance = '1s', MatchBy = 'Time') #Match data
 		if df.empty == True: 
 			print('Sorry! No data! Check boards data by hand')
@@ -322,35 +327,59 @@ def newgetoxygenboards():
 			#}
 	pass
 
-def newgetpscurrent():
-	pass
+def getpscurrent(pathname, settime):
+	'''
+	Get data from PalmSens chronoamperometry file with pathname
+	and return pandas series with Time, close to the settime and
+	Current of this time
+	'''
+	with open(pathname, 'r', encoding='utf-16') as f: 
+		contents = f.readline().splitlines()[0] #Read first line and remove ending
+		time = datetime.strptime(contents.split(',')[1],"%Y-%m-%d %H:%M:%S") # Get time from the file
+	df = pd.read_csv(pathname, 
+				header = 5,
+				skip_blank_lines = True,
+				index_col = 0,
+				# names = {'Time':0, 'CuThe fooerrent muA': 1},
+				encoding='utf-16le',
+				skipfooter = 1,
+				engine='python'
+				).dropna() #Droping NaN values
+	ind = df.index.get_loc(settime, method = 'nearest') #Find index of nearest time to settime
+	current = df.iloc[ind,0]
+	d = {'Time':[time], 'Current muA':[current]}
+	return(pd.DataFrame(data = d))
 
-def	newgetpalmsens():
+def	newgetpalmsens(setpoint):
 	'''
 	Get data from PalmSens and match with reference oxygen,
 	create pandas data frame and save it in result folder
 	'''
-	settime = '0.8s'
 	##Get file lists {
 	folders = tools.getfilelist(st.pathcv, os.sep, 
 		comment = 'Getting folder list for PalmSense Oxygen curves')
-	for folder in folders:
+	#}
+	df1 = pd.DataFrame() #Create empty data frame
+	for folder in folders: #Get all folders
 		pathnames = tools.getfilelist(folder, filetype = '*.csv')
 		for name in pathnames:
-			df = pd.read_csv(name, 
-				encoding = 'utf-16',
-				header = 5,
-				names = {'Time': 0, 'Current $\mu$A':3},
-				).dropna()
-			df['Time'] = pd.to_datetime(df['Time'], unit='s')
-			# df['Time'] = pd.DatetimeIndex(df['Time']).time#+ pd.Timedelta(addtime)
-			a = df['Time'].index.get_loc(pd.Timedelta(settime), method='nearest')
-			print(a)
-			asdf
-	#}
+			df1 = df1.append(getpscurrent(name, setpoint), ignore_index=True)
+		df2 = getoxarray(df1)
+		print(df1)
+		print(df2)
+		df = newcomparetime(df1, df2, tolerance = '1s', MatchBy = 'Time') #Match data
+		##
+		# Doesent work matching!!
+		##
+		if df.empty == True: 
+			print('Sorry! No data! Check boards data by hand')
+		else:
+		#File export {
+			df.to_csv(os.path.join(st.resultfolder,name+'.csv'), index = False) # Save data as csv
+		#}
 	pass
 
-newgetpalmsens()
+newgetpalmsens(1)
 
 ###
 

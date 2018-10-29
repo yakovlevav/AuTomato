@@ -2,7 +2,7 @@ import os
 
 Data = {}
 #Settings for application
-pathcv = os.path.join(os.getcwd(),'Data','Curves')
+pathcv = os.path.join(os.getcwd(),'Data','PalmSense')
 #Folder for conversion of PalmSense files
 convertfolder = os.path.join(os.getcwd(),pathcv,'converted')
 
@@ -52,7 +52,7 @@ currentsetpoint = 0.1
 averangetime = 5
 
 # Path for oxygen reference data
-pathOx = os.path.join(os.getcwd(),'Data','Oxygen')
+pathOx = os.path.join(os.getcwd(),'Data','RefOxygen')
 OxExt = '.txt'
 
 #Settings for PalmSense converte
